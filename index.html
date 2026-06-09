@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Moral Culpability Cube &middot; A Reflection Tool</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: #140d07; }
+  body {
+    font-family: 'Crimson Pro', Georgia, serif; color: #f0e0c0;
+    overflow: hidden; -webkit-text-size-adjust: 100%;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #3a2e18; border-radius: 3px; }
+
+  #scene { position: fixed; inset: 0; z-index: 1; touch-action: none; }
+
+  h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; }
+  .gold { color: #c9a552; }
+  .muted { color: #8a7a60; }
+  .scripture { display: none; }
+  body.scriptural .scripture { display: block; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-block; font-family: 'Crimson Pro', serif; font-size: 0.95rem;
+    color: #140d07; background: #c9a552; border: none; border-radius: 4px;
+    padding: 0.7rem 1.4rem; cursor: pointer; letter-spacing: 0.03em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn:hover { background: #ddb863; }
+  .btn:active { transform: scale(0.98); }
+  .btn.ghost { background: transparent; color: #c9a552; border: 1px solid #6a5638; }
+  .btn.ghost:hover { background: #c9a55218; color: #ddb863; }
+  .btn.sm { font-size: 0.8rem; padding: 0.45rem 0.9rem; }
+
+  /* ---------- overlay screens ---------- */
+  .screen {
+    position: fixed; inset: 0; z-index: 10; display: none;
+    flex-direction: column; align-items: center;
+    background: radial-gradient(120% 90% at 50% 10%, #1e1408fa, #100a05fc);
+    overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.2rem;
+  }
+  .screen.active { display: flex; }
+  .wrap { width: 100%; max-width: 560px; margin: auto; padding: 1.5rem 0; }
+
+  /* ---------- intro ---------- */
+  #screen-intro h1 { font-size: 1.7rem; color: #c9a552; line-height: 1.2; text-align: center; }
+  #screen-intro .sub { text-align: center; font-size: 0.78rem; color: #6a5638; letter-spacing: 0.18em; margin-top: 0.5rem; text-transform: uppercase; }
+  #screen-intro .lede { font-size: 1.02rem; line-height: 1.65; color: #d8c8a8; margin: 1.6rem 0; text-align: center; font-style: italic; }
+  #screen-intro .axisrow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; margin: 1.4rem 0; }
+  #screen-intro .axiscard { background: #00000035; border: 1px solid #2e2010; border-radius: 6px; padding: 0.7rem 0.5rem; text-align: center; }
+  #screen-intro .axiscard .d { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-bottom: 0.35rem; }
+  #screen-intro .axiscard .n { font-size: 0.85rem; color: #c9a552; font-weight: 600; }
+  #screen-intro .axiscard .t { font-size: 0.68rem; color: #8a7a60; line-height: 1.3; margin-top: 0.2rem; }
+  #screen-intro .cta { text-align: center; margin-top: 1.8rem; display: flex; flex-direction: column; gap: 0.7rem; align-items: center; }
+  .versebox { border-left: 2px solid #c9a55266; padding: 0.3rem 0 0.3rem 0.9rem; margin: 1.3rem 0; font-style: italic; color: #b8a888; font-size: 0.92rem; line-height: 1.55; }
+  .versebox .ref { display: block; font-style: normal; font-size: 0.72rem; color: #6a5638; margin-top: 0.35rem; letter-spacing: 0.05em; }
+
+  /* ---------- toggle ---------- */
+  .toggle { display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.78rem; color: #8a7a60; cursor: pointer; user-select: none; }
+  .toggle .track { width: 42px; height: 22px; border-radius: 11px; background: #2e2010; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle .knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #8a7a60; transition: left 0.2s, background 0.2s; }
+  body.scriptural .toggle .track { background: #5a4410; }
+  body.scriptural .toggle .knob { left: 22px; background: #c9a552; }
+  .toggle b { color: #c9a552; font-weight: 600; }
+
+  /* ---------- quiz ---------- */
+  #screen-quiz .wrap { max-width: 540px; }
+  .progress { display: flex; gap: 0.4rem; margin-bottom: 1.6rem; }
+  .progress span { flex: 1; height: 4px; border-radius: 2px; background: #2e2010; transition: background 0.3s; }
+  .progress span.done { background: #c9a552; }
+  .progress span.cur { background: #8a6a20; }
+  .qstep { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: #6a5638; margin-bottom: 0.5rem; }
+  .qtitle { font-size: 1.35rem; color: #e8d8b8; line-height: 1.3; margin-bottom: 0.4rem; }
+  .qhelp { font-size: 0.88rem; color: #8a7a60; font-style: italic; margin-bottom: 1.4rem; line-height: 1.5; }
+  .opts { display: flex; flex-direction: column; gap: 0.7rem; }
+  .opt {
+    text-align: left; background: #00000040; border: 1px solid #2e2010; border-radius: 7px;
+    padding: 0.95rem 1.05rem; cursor: pointer; color: #d8c8a8; font-size: 0.98rem; line-height: 1.45;
+    font-family: 'Crimson Pro', serif; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    display: flex; gap: 0.8rem; align-items: flex-start;
+  }
+  .opt:hover { border-color: #c9a552; background: #c9a55214; }
+  .opt:active { transform: scale(0.99); }
+  .opt.sel { border-color: #c9a552; background: #c9a55222; }
+  .opt .mk { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #6a5638; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #6a5638; margin-top: 0.1rem; }
+  .opt.sel .mk { background: #c9a552; border-color: #c9a552; color: #140d07; }
+  .qnav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.6rem; }
+  .ctxfield { width: 100%; background: #00000045; border: 1px solid #2e2010; border-radius: 6px; color: #e8d8b8; font-family: 'Crimson Pro', serif; font-size: 0.98rem; padding: 0.8rem 0.9rem; margin-top: 0.4rem; resize: vertical; }
+  .ctxfield::placeholder { color: #5a4a30; font-style: italic; }
+  .ctxfield:focus { outline: none; border-color: #c9a552; }
+  .fieldlabel { font-size: 0.82rem; color: #8a7a60; margin-top: 1.1rem; display: block; }
+
+  /* ---------- result drawer ---------- */
+  #screen-result { background: linear-gradient(#100a0500, #100a0500); pointer-events: none; }
+  #screen-result.active { display: flex; }
+  #result-card {
+    pointer-events: auto; width: 100%; max-width: 580px; margin: auto auto 0; align-self: center;
+    background: #1a1208f7; border: 1px solid #c9a552; border-top-left-radius: 14px; border-top-right-radius: 14px;
+    max-height: 88vh; overflow-y: auto; padding: 1.1rem 1.2rem 1.4rem;
+    box-shadow: 0 -12px 40px #00000080;
+  }
+  .reshead { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.7rem; }
+  .reshead .lbl { font-size: 1.15rem; color: #c9a552; line-height: 1.25; flex: 1; }
+  .reshead .sc { flex-shrink: 0; text-align: center; }
+  .reshead .sc .num { font-size: 1.6rem; font-weight: 700; color: #fff; font-family: 'Playfair Display', serif; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 6px; display: inline-block; }
+  .reshead .sc .of { font-size: 0.62rem; color: #8a7a60; display: block; margin-top: 0.25rem; letter-spacing: 0.1em; }
+  .resband { font-size: 0.78rem; letter-spacing: 0.05em; margin: 0.55rem 0 0.9rem; padding: 0.35rem 0.6rem; border-radius: 4px; display: inline-block; }
+  .resex { font-size: 0.96rem; color: #d0c0a0; line-height: 1.6; font-style: italic; border-left: 2px solid #3a2e18; padding-left: 0.85rem; margin-bottom: 1.1rem; }
+  .seclabel { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6a5638; margin: 1.2rem 0 0.6rem; border-bottom: 1px solid #2e2010; padding-bottom: 0.3rem; }
+  .axisbreak { display: flex; flex-direction: column; gap: 0.6rem; }
+  .ab { background: #00000038; border: 1px solid #2e2010; border-radius: 6px; padding: 0.6rem 0.75rem; }
+  .ab .abtop { display: flex; align-items: center; gap: 0.5rem; }
+  .ab .abdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .ab .abname { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: #8a7a60; flex: 1; }
+  .ab .abval { font-size: 0.84rem; color: #c9a552; font-weight: 600; }
+  .ab .abw { font-size: 0.7rem; color: #6a5638; margin-left: 0.4rem; }
+  .ab .abnote { font-size: 0.86rem; color: #c0b090; line-height: 1.5; margin-top: 0.4rem; }
+  .ab.heavy { border-color: #b8501066; }
+  .grow { font-size: 0.94rem; color: #d8c8a8; line-height: 1.6; }
+  .grow .g { margin-bottom: 0.7rem; padding-left: 0.9rem; border-left: 2px solid #c9a55244; }
+  .resnote { width: 100%; background: #00000045; border: 1px solid #2e2010; border-radius: 6px; color: #e8d8b8; font-family: 'Crimson Pro', serif; font-size: 0.95rem; padding: 0.7rem 0.85rem; resize: vertical; min-height: 70px; }
+  .resnote:focus { outline: none; border-color: #c9a552; }
+  .resnote::placeholder { color: #5a4a30; font-style: italic; }
+  .resbtns { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.1rem; }
+  .saved-flag { font-size: 0.8rem; color: #6e9e5a; margin-top: 0.6rem; min-height: 1rem; }
+
+  /* floating reopen + reflect-on-cube state */
+  #reopen { position: fixed; z-index: 9; bottom: 1rem; left: 50%; transform: translateX(-50%); display: none; }
+  body.viewing-cube #screen-result { display: none; }
+  body.viewing-cube #reopen { display: block; }
+
+  /* ---------- journal ---------- */
+  #screen-journal h2 { font-size: 1.4rem; color: #c9a552; }
+  .jlist { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 1.2rem; }
+  .jentry { background: #00000040; border: 1px solid #2e2010; border-radius: 7px; padding: 0.8rem 0.9rem; }
+  .jentry .jtop { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .jentry .jdate { font-size: 0.72rem; color: #6a5638; }
+  .jentry .jscore { font-size: 0.72rem; font-weight: 700; color: #fff; padding: 0.12rem 0.4rem; border-radius: 3px; }
+  .jentry .jlbl { font-size: 0.98rem; color: #c9a552; margin-top: 0.35rem; }
+  .jentry .jcoord { font-size: 0.74rem; color: #8a7a60; margin-top: 0.25rem; }
+  .jentry .jtext { font-size: 0.88rem; color: #c0b090; font-style: italic; line-height: 1.5; margin-top: 0.5rem; }
+  .jentry .jdel { background: none; border: none; color: #7a4a3a; font-size: 0.74rem; cursor: pointer; padding: 0; }
+  .jentry .jdel:hover { color: #b8503a; }
+  .jempty { text-align: center; color: #6a5638; font-style: italic; margin: 2.5rem 0; line-height: 1.6; }
+  .jtrend { font-size: 0.82rem; color: #8a7a60; text-align: center; margin-top: 0.9rem; line-height: 1.5; }
+
+  .topbar { width: 100%; max-width: 560px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+
+  /* ---------- in-scene chrome (result cube view) ---------- */
+  #cubehint { position: fixed; z-index: 8; top: 0.9rem; left: 50%; transform: translateX(-50%); font-size: 0.62rem; color: #6a5638; font-style: italic; text-align: center; display: none; pointer-events: none; }
+  body.viewing-cube #cubehint { display: block; }
+  #explodewrap { position: fixed; z-index: 8; right: 0.2rem; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: center; gap: 0.3rem; pointer-events: none; }
+  body.viewing-cube #explodewrap { display: flex; }
+  #explodewrap .el { font-size: 0.5rem; color: #8a7a60; letter-spacing: 0.1em; }
+  .sliderwrap { height: 150px; width: 30px; display: flex; align-items: center; justify-content: center; }
+  .sliderwrap input { width: 140px; transform: rotate(-90deg); pointer-events: auto; }
+  input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height: 3px; background: #3a2e18; border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #c9a552; margin-top: -6.5px; cursor: pointer; }
+  input[type=range]::-moz-range-track { height: 3px; background: #3a2e18; border-radius: 2px; }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #c9a552; border: none; cursor: pointer; }
+
+  .footnote { font-size: 0.66rem; color: #4a3a24; text-align: center; margin-top: 1.6rem; line-height: 1.5; }
+</style>
+</head>
+<body class="scriptural">
+<div id="scene"></div>
+
+<!-- ============ INTRO ============ -->
+<section id="screen-intro" class="screen active">
+  <div class="wrap">
+    <div class="topbar">
+      <span class="muted" style="font-size:0.72rem; letter-spacing:0.12em;">A REFLECTION TOOL</span>
+      <button class="btn ghost sm" id="introJournalBtn">My reflections</button>
+    </div>
+    <h1>The Moral Culpability Cube</h1>
+    <p class="sub">Agency &middot; Cause &middot; Relationship</p>
+
+    <p class="lede">Not all wrongs weigh the same. The same act can sit anywhere from a passing failure to a grave betrayal &mdash; it depends on what you intended, what you did, and who you owed.</p>
+
+    <p style="font-size:0.96rem; line-height:1.65; color:#c0b090; text-align:center;">
+      Answer three honest questions about something on your conscience. The cube will show you where it falls among 64 positions of moral weight &mdash; and, more importantly, what it would take to do better.
+    </p>
+
+    <div class="axisrow">
+      <div class="axiscard"><span class="d" style="background:#c9a552"></span><div class="n">Agency</div><div class="t">Your will &mdash; planned, impulsive, careless, or accidental</div></div>
+      <div class="axiscard"><span class="d" style="background:#88aa88"></span><div class="n">Cause</div><div class="t">Your hand &mdash; did it, enabled it, allowed it, or missed it</div></div>
+      <div class="axiscard"><span class="d" style="background:#8888b8"></span><div class="n">Relationship</div><div class="t">Your bond &mdash; sworn duty, family, neighbor, or stranger</div></div>
+    </div>
+
+    <div class="versebox scripture">
+      &ldquo;Search me, O God, and know my heart; try me and know my thoughts, and see if there be any grievous way in me, and lead me in the way everlasting.&rdquo;
+      <span class="ref">&mdash; Psalm 139:23&ndash;24</span>
+    </div>
+
+    <div class="cta">
+      <button class="btn" id="startBtn" style="font-size:1.05rem; padding:0.8rem 2.2rem;">Begin reflection</button>
+      <label class="toggle" id="toneToggle" title="Switch framing">
+        <span class="track"><span class="knob"></span></span>
+        <span>Framing: <b id="toneLabel">Scriptural</b></span>
+      </label>
+    </div>
+
+    <p class="footnote">Everything you write stays in this browser, on this device. Nothing is sent anywhere &mdash; no account, no server. This is a tool for honest self-examination, not a verdict.</p>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="screen-quiz" class="screen">
+  <div class="wrap">
+    <div class="progress" id="progress"></div>
+    <div id="qbody"></div>
+    <div class="qnav">
+      <button class="btn ghost sm" id="backBtn">&larr; Back</button>
+      <button class="btn sm" id="nextBtn">Next &rarr;</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULT ============ -->
+<section id="screen-result" class="screen">
+  <div id="result-card">
+    <div class="reshead">
+      <div class="lbl" id="resLbl"></div>
+      <div class="sc"><span class="num" id="resNum"></span><span class="of">of 9</span></div>
+    </div>
+    <div class="resband" id="resBand"></div>
+    <div class="resex" id="resEx"></div>
+
+    <div class="seclabel">How the weight was reckoned</div>
+    <div class="axisbreak" id="resBreak"></div>
+
+    <div class="seclabel">Toward doing better</div>
+    <div class="grow" id="resGrow"></div>
+
+    <div class="scripture">
+      <div class="seclabel">For examination &amp; for hope</div>
+      <div id="resScripture"></div>
+    </div>
+
+    <div class="seclabel">Your private reflection</div>
+    <textarea class="resnote" id="resNote" placeholder="What do you understand now that you didn't before? What is one thing you'll do differently?"></textarea>
+    <div class="saved-flag" id="savedFlag"></div>
+
+    <div class="resbtns">
+      <button class="btn sm" id="saveBtn">Save to my reflections</button>
+      <button class="btn ghost sm" id="viewCubeBtn">See it on the cube</button>
+      <button class="btn ghost sm" id="againBtn">New reflection</button>
+    </div>
+
+    <p class="footnote">This cube measures culpability, not the worth of a person. The lightest cell still asks something of us; the heaviest still leaves room to turn back.
+      <span class="scripture"><br>&ldquo;If we confess our sins, he is faithful and just to forgive us.&rdquo; &mdash; 1 John 1:9</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============ JOURNAL ============ -->
+<section id="screen-journal" class="screen">
+  <div class="wrap">
+    <div class="topbar">
+      <h2>My reflections</h2>
+      <button class="btn ghost sm" id="journalHomeBtn">Home</button>
+    </div>
+    <div class="jtrend" id="jTrend"></div>
+    <div class="jlist" id="jList"></div>
+    <div style="text-align:center; margin-top:1.6rem;">
+      <button class="btn sm" id="journalNewBtn">Begin a new reflection</button>
+    </div>
+    <p class="footnote">These entries live only in this browser. Clearing your browser data will erase them.</p>
+  </div>
+</section>
+
+<!-- in-scene chrome -->
+<div id="cubehint">drag to rotate &middot; pinch / scroll to zoom &middot; your cell glows gold</div>
+<div id="explodewrap">
+  <div class="el">EXPLODE</div>
+  <div class="sliderwrap"><input type="range" id="explode" min="100" max="280" value="135"></div>
+  <div class="el" id="eval">1.4&times;</div>
+</div>
+<button class="btn" id="reopen">&uarr; Back to my reflection</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const SCORE_COLORS = ["#2a5c38","#3a6e3e","#5c7e35","#7e8a28","#9e8a18","#b87a10","#c85810","#c83818","#b81a18","#8a0a0a"];
+const AGENCY     = ["Premeditated","Impulsive (knowing)","Negligent","Accidental"];
+const CAUSAL     = ["Direct cause","Facilitated","Failed to prevent","Failed to perceive"];
+const RELATIONAL = ["Sworn duty","Natural bond","Incidental","Stranger"];
+const AXIS_COLOR = { agency:"#c9a552", causal:"#88aa88", relational:"#8888b8" };
+const score = (a,b,c) => (3-a)+(3-b)+(3-c);
+
+const CELLS = {
+"0-0-0":["Planned betrayal of office","A judge devises a scheme to convict an innocent man for personal gain. Full knowledge, full will, highest duty violated. The apex of culpability."],
+"0-0-1":["Harm to one's child by plan","A parent schemes to harm their child. Natural care deliberately inverted."],
+"0-0-2":["Planned ambush of a stranger","A man lays an ambush for a traveler he has never met."],
+"0-0-3":["Contract killing","A hired killer plans the death of someone with whom he has no prior connection."],
+"0-1-0":["Calculated false teaching","A priest knowingly spreads heresy, having calculated the influence it will yield."],
+"0-1-1":["Raising a child in vice by plan","A parent intentionally trains their child in deception and theft as a way of life."],
+"0-1-2":["Poisoning a shared well","A man poisons a community water source knowing travelers will drink from it."],
+"0-1-3":["Selling rotten grain knowingly","A merchant deliberately sells harmful goods to anonymous buyers."],
+"0-2-0":["Watchman who plans his silence","The Ezekiel watchman who sees the enemy and deliberately stays silent. Ezekiel 33 condemns this absolutely."],
+"0-2-1":["Deliberate starvation of a child","A parent withholds food from their child deliberately, having the means to provide. 1 Timothy 5:8 proximity."],
+"0-2-2":["The Levite's deliberate choice","The Levite in Luke 10 who reasons through his decision before walking past the beaten man."],
+"0-2-3":["Choosing to watch one drown","A man watches a stranger drown and deliberately decides not to call for help."],
+"0-3-0":["Judge who wills his ignorance","A judge deliberately avoids learning of corruption in his court so he may later claim ignorance."],
+"0-3-1":["Willed neglect of one's child","A parent deliberately cultivates indifference to their child's visible distress."],
+"0-3-2":["Willed blindness to community","A community elder deliberately avoids streets where poverty is visible to escape obligation."],
+"0-3-3":["Willed ignorance of the distant","A wealthy man deliberately avoids news of famine so no sense of obligation can arise."],
+"1-0-0":["Official who strikes in rage","A judge, publicly humiliated, strikes the defendant in court. He knew it was wrong the moment his hand moved."],
+"1-0-1":["Parent strikes child in anger","A father strikes his child harder than intended in a flash of fury."],
+"1-0-2":["Roadside quarrel turns violent","Two travelers argue and one shoves the other into a ditch in a burst of temper."],
+"1-0-3":["Rage against a stranger","A soldier in sudden fury harms a captive with whom he has no relationship."],
+"1-1-0":["Hasty slander from the pulpit","A priest, irritated by a congregant, speaks damaging words in a moment of frustration."],
+"1-1-1":["Harmful words in family anger","A parent in a fit of temper tells their child destructive things the child then acts on."],
+"1-1-2":["Spiteful advice to a neighbor","A man, annoyed at being asked, gives a neighbor deliberately bad counsel in the heat of the moment."],
+"1-1-3":["Wrong directions out of spite","A shopkeeper bothered by a traveler gives wrong directions knowing they are wrong."],
+"1-2-0":["Official refuses to intervene","A judge, stung by criticism, consciously refuses to stop an injustice before him."],
+"1-2-1":["Parent ignores a harmful fight","A parent irritated at being disturbed fails to intervene in a sibling fight that injures one of them."],
+"1-2-2":["Bystander decides not to help","A person sees someone harmed but is in a hurry and consciously decides not to help."],
+"1-2-3":["Traveler who presses on knowing","A man sees a stranger about to walk into harm and presses on, fully aware of what he is not doing."],
+"1-3-0":["Priest absorbed in performance","A priest so caught up in public worship that he consciously tunes out a congregant in distress."],
+"1-3-1":["Parent aware they are not looking","A parent consumed by their own troubles, aware at some level they are failing to see their child."],
+"1-3-2":["Neighbor who chooses not to look","A man suspects something is wrong next door but consciously decides not to investigate."],
+"1-3-3":["Traveler who averts their eyes","A passerby notices a figure of possible distress and consciously decides not to look closer."],
+"2-0-0":["Careless verdict","A judge delivers a ruling without adequate inquiry and punishes an innocent man through sloth."],
+"2-0-1":["Parental negligence injures","A parent handles dangerous tools carelessly near a child and causes harm."],
+"2-0-2":["Careless work, neighbor injured","A craftsman swings a tool carelessly in a shared space and wounds a bystander. Exodus 21."],
+"2-0-3":["Uncovered pit on a road","A person leaves a pit uncovered and a traveler falls in. Exodus 21:33, the Torah's paradigm of negligence."],
+"2-1-0":["Priest teaches from laziness","A priest teaches without proper study and spreads error through laziness, not malice."],
+"2-1-1":["Parent carelessly models vice","A parent never reflects on the habits they pass to their child and instills harmful patterns."],
+"2-1-2":["Careless advice harms neighbor","A person gives a neighbor confident advice they have not thought through, and harm follows."],
+"2-1-3":["Negligent merchant","A trader who does not check his goods and a stranger is harmed as a result."],
+"2-2-0":["The sleeping watchman","Ezekiel's watchman who falls asleep and fails to warn the city. He had the duty and the means."],
+"2-2-1":["Parent misses approaching danger","A parent distracted by other concerns fails to see their child moving toward harm."],
+"2-2-2":["Neighbor meant to warn","A person knew of a hazard near a neighbor and kept meaning to mention it until too late."],
+"2-2-3":["Passerby who vaguely notices","A traveler notices something uncertain at the roadside but does not pause to check."],
+"2-3-0":["Judge ignorant by inattention","A judge has not kept himself informed and misses patterns of injustice he should have seen."],
+"2-3-1":["Parent misses signs of suffering","A parent, through general inattentiveness, fails to register a child's worsening distress."],
+"2-3-2":["Community member never looked","A person who has never made the effort to notice who around them might be in need."],
+"2-3-3":["Traveler too absorbed in journey","A person passes a figure in possible distress, too focused on their destination to register it."],
+"3-0-0":["Priest teaches error in good faith","A priest passes on incorrect ritual instruction received from a trusted teacher. Leviticus 4 still requires atonement."],
+"3-0-1":["Parent gives wrong medicine","A parent following best knowledge administers the wrong remedy and harms their child."],
+"3-0-2":["The axe head that slips","A man felling timber whose axe head slips and strikes a neighbor. Deuteronomy 19:5, cities of refuge apply."],
+"3-0-3":["Accidental harm to a stranger","Someone damages a stranger's property with no awareness they were in the vicinity."],
+"3-1-0":["Priest transmits false tradition","A priest teaches a doctrine received in good faith from predecessors that proves to be in error."],
+"3-1-1":["Harmful practice taught in love","A parent, with genuine love, instills a practice that later proves harmful. No way of knowing."],
+"3-1-2":["Good-faith advice causes harm","A person gives a neighbor sincere, considered advice that turns out to be wrong."],
+"3-1-3":["Innocent misinformation","A traveler passes on directions he believes correct that lead a stranger astray."],
+"3-2-0":["Watchman struck by illness","A watchman falls genuinely ill and cannot sound the warning he would otherwise have given."],
+"3-2-1":["Parent arrived too late","A parent saw the danger and ran but arrived too late. Only circumstance failed, not will or duty."],
+"3-2-2":["Bystander who tried and failed","A neighbor attempted to intervene but was physically unable to prevent the harm."],
+"3-2-3":["No real opportunity to act","A traveler had no way of knowing harm was occurring and so no chance to prevent it."],
+"3-3-0":["Judge deceived by hidden evidence","A judge fails to notice injustice because the relevant evidence was actively concealed from him."],
+"3-3-1":["Child hid their own suffering","A parent could not notice what their child deliberately concealed from them."],
+"3-3-2":["No available signal","A community member had no perceivable sign that a nearby family was in crisis."],
+"3-3-3":["The minimum culpability case","A person passes hidden suffering with no perceivable sign, no relationship, no duty, no warning. The most that can be said is that they were present."],
+};
+
+/* guided questions -> axis coordinate (index = coordinate value) */
+const QUESTIONS = [
+  { key:"agency", color:AXIS_COLOR.agency, step:"Question 1 of 3 · Agency",
+    title:"When it happened, what was going on inside you?",
+    help:"This is about your will — how much of yourself was in the act.",
+    opts:[
+      "I planned it. I knew what I was doing and chose it ahead of time.",
+      "I did it in the heat of the moment — but I knew it was wrong even as I did it.",
+      "It came from carelessness. I wasn't paying enough attention or taking due care.",
+      "It was a genuine accident. I couldn't reasonably have known or foreseen it.",
+    ] },
+  { key:"causal", color:AXIS_COLOR.causal, step:"Question 2 of 3 · Cause",
+    title:"What was your part in the harm itself?",
+    help:"This is about your hand — the link between you and what happened.",
+    opts:[
+      "I caused it directly. It was my own action that did the harm.",
+      "I enabled it — I helped it along or made it possible, even if someone else finished it.",
+      "I failed to prevent it. I could have stopped it and didn't act.",
+      "I failed even to notice it when, arguably, I might have.",
+    ] },
+  { key:"relational", color:AXIS_COLOR.relational, step:"Question 3 of 3 · Relationship",
+    title:"What was your bond to the person affected?",
+    help:"This is about what you owed — the claim they had on you.",
+    opts:[
+      "A sworn or formal duty — an oath, an office, a position of trust over them.",
+      "A natural bond of care — family, a close friend, someone in my charge.",
+      "An incidental tie — a neighbor, coworker, or acquaintance in my path.",
+      "A stranger — no prior connection or duty between us.",
+    ] },
+];
+
+/* per-axis, per-level reckoning notes + growth prompts (index 0..3) */
+const RECKON = {
+  agency: {
+    note:[
+      "Planned, knowing intent is the heaviest form of agency. You had time to choose otherwise and chose this; the whole of your will was in it.",
+      "You knew it was wrong even as you acted. The knowledge was present — what failed was self-mastery in the moment.",
+      "This grew from carelessness rather than malice. Yet failing to take due care is itself a kind of choice.",
+      "There was no intent and no reasonable way to foresee it. In every moral tradition this is the lightest form of agency.",
+    ],
+    grow:[
+      "A plan has a beginning. Reflection works best upstream — at the first thought, not the final act. Where did this take root, and what earlier moment could you have interrupted?",
+      "Name the trigger. The heat of the moment loses its grip once you can see in advance what lights the fuse. What feeling or situation set this off?",
+      "Diligence is a virtue you can build on purpose. What attention, habit, or check would have caught this before it became harm?",
+      "If you truly could not have known, take care not to carry guilt that isn't yours. Here, reflection is for peace and learning, not blame.",
+    ] },
+  causal: {
+    note:[
+      "The harm came directly from your own hand. There is no intermediary to share the weight of it.",
+      "You made the harm possible or easier, even if another's act completed it. Enabling carries real weight of its own.",
+      "You could have stopped this and did not. The failure to act is still a cause — the sin of omission is no lighter for being quiet.",
+      "You did not act because you did not perceive. The weight here turns on whether you ought to have seen.",
+    ],
+    grow:[
+      "When the cause is wholly yours, repair is also most fully in your power. What concrete step could begin to make it right?",
+      "Ask where you could have refused to be the bridge. Often the enabling step is easier to decline than the act itself.",
+      "Knowing the good and not doing it is its own failure. What made action feel optional, and how will you make it non-negotiable next time?",
+      "Train your attention outward. What would help you notice sooner — a habit of checking in, of looking up from your own concerns?",
+    ] },
+  relational: {
+    note:[
+      "You held a sworn or formal duty toward them. The greater the trust placed in you, the graver the breach of it.",
+      "A natural bond — family or those in your care — raises what is rightly owed.",
+      "They stood within your path or community: a real claim on you, though a lesser one.",
+      "No prior bond or duty existed. This is the lightest relational weight — though never quite zero, for every person has some claim on us.",
+    ],
+    grow:[
+      "Those who trust us most are wounded most by our failures. How will you tend the trust itself, not only the harm?",
+      "Love is proven in attention. What would it look like to be reliably present to this person, not only in crisis?",
+      "Even loose ties bind us. Consider who else in your path has a quiet claim you've been overlooking.",
+      "That you owed little does not mean you owed nothing. The Samaritan owed a stranger nothing — and is remembered for what he gave anyway.",
+    ] },
+};
+
+/* score band descriptors */
+function band(s){
+  if (s<=2) return ["Light weight","Real, but small. The kind of failing examined and set right quickly.","#2a5c38"];
+  if (s<=4) return ["Moderate weight","A genuine fault worth sitting with. Several things here could have gone otherwise.","#7e8a28"];
+  if (s<=6) return ["Serious weight","This asks for real reckoning. Intention, action, and obligation are meaningfully in play.","#c85810"];
+  return ["Grave weight","Among the heaviest the cube measures. Knowing will, direct hand, and deep duty converge here.","#b81a18"];
+}
+
+/* scripture by cell, with thematic fallbacks */
+const SCRIPTURE_CELL = {
+  "0-2-0":["Ezekiel 33:6","“But if the watchman sees the sword coming and does not blow the trumpet... his blood I will require at the watchman's hand.”"],
+  "2-2-0":["Ezekiel 33:6","“If the watchman sees the sword coming and does not blow the trumpet... his blood I will require at the watchman's hand.”"],
+  "0-2-2":["Luke 10:31–32","“A priest was going down that road, and when he saw him he passed by on the other side... so likewise a Levite.”"],
+  "1-2-2":["Luke 10:33–34","“But a Samaritan, as he journeyed, came to where he was, and when he saw him, he had compassion.”"],
+  "0-2-1":["1 Timothy 5:8","“If anyone does not provide for... members of his household, he has denied the faith and is worse than an unbeliever.”"],
+  "0-2-3":["1 John 3:17","“If anyone... sees his brother in need, yet closes his heart against him, how does God's love abide in him?”"],
+  "2-0-2":["Exodus 21:18–19","The law of restitution for harm done to a neighbor's body."],
+  "2-0-3":["Exodus 21:33–34","“When a man... digs a pit and does not cover it, and an ox or a donkey falls into it, the owner of the pit shall make restoration.”"],
+  "3-0-0":["Leviticus 4:27–28","Even sin committed unintentionally requires atonement once it is made known."],
+  "3-0-2":["Deuteronomy 19:5","For the one whose axe head slips and kills a neighbor, the cities of refuge are appointed."],
+};
+const SCRIPTURE_AXIS = {
+  agency:["Matthew 15:19","“For out of the heart come evil thoughts... It is these that defile a person.”"],
+  causal:["James 4:17","“Whoever knows the right thing to do and fails to do it, for him it is sin.”"],
+  relational:["Galatians 6:10","“As we have opportunity, let us do good to everyone, and especially to those of the household of faith.”"],
+};
+const SCRIPTURE_CLOSE = ["1 John 1:9","“If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all unrighteousness.”"];
+
+/* ============================================================
+   STATE + NAVIGATION
+   ============================================================ */
+const STORE_KEY = "macoc_reflections_v1";
+const TONE_KEY  = "macoc_tone_v1";
+let answers = [null, null, null];
+let current = { a:null, b:null, c:null, s:null };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.body.classList.remove('viewing-cube');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id === 'screen-result') document.getElementById('result-card').scrollTop = 0;
+}
+
+/* ---- tone toggle ---- */
+function applyTone(){
+  const scriptural = localStorage.getItem(TONE_KEY) !== 'universal';
+  document.body.classList.toggle('scriptural', scriptural);
+  document.getElementById('toneLabel').textContent = scriptural ? 'Scriptural' : 'Universal';
+}
+document.getElementById('toneToggle').addEventListener('click', () => {
+  const now = document.body.classList.contains('scriptural');
+  localStorage.setItem(TONE_KEY, now ? 'universal' : 'scriptural');
+  applyTone();
+});
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+let qIndex = 0;
+const progressEl = document.getElementById('progress');
+QUESTIONS.forEach(() => { const s=document.createElement('span'); progressEl.appendChild(s); });
+
+function renderQuestion(){
+  const q = QUESTIONS[qIndex];
+  progressEl.querySelectorAll('span').forEach((s,i)=>{
+    s.className = i < qIndex ? 'done' : (i === qIndex ? 'cur' : '');
+  });
+  let html = `<div class="qstep" style="color:${q.color}">${q.step}</div>`;
+  html += `<div class="qtitle">${q.title}</div>`;
+  html += `<div class="qhelp">${q.help}</div>`;
+  html += `<div class="opts">`;
+  q.opts.forEach((o,i)=>{
+    const sel = answers[qIndex] === i ? ' sel' : '';
+    html += `<button class="opt${sel}" data-i="${i}"><span class="mk">${"ABCD"[i]}</span><span>${o}</span></button>`;
+  });
+  html += `</div>`;
+  document.getElementById('qbody').innerHTML = html;
+  document.querySelectorAll('#qbody .opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      answers[qIndex] = parseInt(btn.dataset.i,10);
+      document.querySelectorAll('#qbody .opt').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      document.getElementById('nextBtn').textContent = qIndex === QUESTIONS.length-1 ? 'See my result →' : 'Next →';
+    });
+  });
+  document.getElementById('backBtn').textContent = qIndex === 0 ? '← Start over' : '← Back';
+  document.getElementById('nextBtn').textContent = qIndex === QUESTIONS.length-1 ? 'See my result →' : 'Next →';
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if (answers[qIndex] === null){
+    const help = document.querySelector('#qbody .qhelp');
+    help.textContent = 'Choose the option closest to the truth before continuing.';
+    help.style.color = '#c87a4a';
+    return;
+  }
+  if (qIndex < QUESTIONS.length-1){ qIndex++; renderQuestion(); }
+  else computeResult();
+});
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  if (qIndex === 0){ showScreen('screen-intro'); }
+  else { qIndex--; renderQuestion(); }
+});
+
+function startQuiz(){
+  answers = [null,null,null];
+  qIndex = 0;
+  renderQuestion();
+  showScreen('screen-quiz');
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+function computeResult(){
+  const a = answers[0], b = answers[1], c = answers[2];
+  const s = score(a,b,c);
+  current = { a, b, c, s };
+  const cell = CELLS[`${a}-${b}-${c}`];
+  const [bandName, bandDesc, bandCol] = band(s);
+
+  document.getElementById('resLbl').textContent = cell[0];
+  const num = document.getElementById('resNum');
+  num.textContent = s; num.style.background = SCORE_COLORS[s];
+  const bandEl = document.getElementById('resBand');
+  bandEl.textContent = bandName + ' — ' + bandDesc;
+  bandEl.style.background = bandCol + '22';
+  bandEl.style.color = bandCol === '#2a5c38' ? '#7aa886' : (bandCol === '#7e8a28' ? '#c4c878' : '#e0a080');
+  document.getElementById('resEx').textContent = cell[1];
+
+  // breakdown
+  const axes = [
+    { key:'agency', label:'Agency', val:AGENCY[a], idx:a },
+    { key:'causal', label:'Cause', val:CAUSAL[b], idx:b },
+    { key:'relational', label:'Relationship', val:RELATIONAL[c], idx:c },
+  ];
+  let bh = '';
+  axes.forEach(ax=>{
+    const w = 3 - ax.idx;
+    const heavy = w >= 2 ? ' heavy' : '';
+    bh += `<div class="ab${heavy}">
+      <div class="abtop"><span class="abdot" style="background:${AXIS_COLOR[ax.key]}"></span>
+      <span class="abname">${ax.label}</span>
+      <span class="abval">${ax.val}<span class="abw">+${w}</span></span></div>
+      <div class="abnote">${RECKON[ax.key].note[ax.idx]}</div></div>`;
+  });
+  document.getElementById('resBreak').innerHTML = bh;
+
+  // growth: prioritise heaviest axes; if all light, gentle close
+  const ranked = axes.slice().sort((x,y)=>(3-y.idx)-(3-x.idx));
+  let gh = '';
+  const heavyAxes = ranked.filter(ax => (3-ax.idx) >= 2);
+  const toShow = heavyAxes.length ? heavyAxes : [ranked[0]];
+  toShow.forEach(ax=>{
+    gh += `<div class="g">${RECKON[ax.key].grow[ax.idx]}</div>`;
+  });
+  if (!heavyAxes.length){
+    gh += `<div class="g">Little here was within your power, and that matters. Let this reflection be about understanding rather than self-reproach.</div>`;
+  }
+  document.getElementById('resGrow').innerHTML = gh;
+
+  // scripture
+  const primary = SCRIPTURE_CELL[`${a}-${b}-${c}`] || SCRIPTURE_AXIS[ranked[0].key];
+  document.getElementById('resScripture').innerHTML =
+    verseHTML(primary) + verseHTML(SCRIPTURE_CLOSE);
+
+  // reset note + saved flag
+  document.getElementById('resNote').value = '';
+  document.getElementById('savedFlag').textContent = '';
+
+  // light the cube
+  selectCellByCoords(a,b,c);
+
+  showScreen('screen-result');
+}
+
+function verseHTML(v){
+  return `<div class="versebox" style="display:block">${v[1]}<span class="ref">&mdash; ${v[0]}</span></div>`;
+}
+
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const cell = CELLS[`${current.a}-${current.b}-${current.c}`];
+  const entry = {
+    t: Date.now(),
+    a: current.a, b: current.b, c: current.c, s: current.s,
+    label: cell[0],
+    note: document.getElementById('resNote').value.trim(),
+  };
+  const all = loadEntries();
+  all.unshift(entry);
+  localStorage.setItem(STORE_KEY, JSON.stringify(all));
+  document.getElementById('savedFlag').textContent = '✓ Saved privately to this device.';
+});
+
+document.getElementById('viewCubeBtn').addEventListener('click', ()=>{
+  document.body.classList.add('viewing-cube');
+  autoSpin = false;
+});
+document.getElementById('reopen').addEventListener('click', ()=>{
+  document.body.classList.remove('viewing-cube');
+});
+document.getElementById('againBtn').addEventListener('click', startQuiz);
+
+/* ============================================================
+   JOURNAL
+   ============================================================ */
+function loadEntries(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch(e){ return []; }
+}
+function fmtDate(t){
+  const d = new Date(t);
+  return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}) +
+    ' · ' + d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+function renderJournal(){
+  const all = loadEntries();
+  const list = document.getElementById('jList');
+  const trend = document.getElementById('jTrend');
+  if (!all.length){
+    list.innerHTML = `<div class="jempty">No reflections saved yet.<br>Each one you keep stays private to this device, and helps you see your own patterns over time.</div>`;
+    trend.textContent = '';
+    return;
+  }
+  const avg = (all.reduce((s,e)=>s+e.s,0)/all.length);
+  trend.innerHTML = `${all.length} reflection${all.length>1?'s':''} kept &middot; average weight <b class="gold">${avg.toFixed(1)} / 9</b>`;
+  list.innerHTML = all.map((e,i)=>`
+    <div class="jentry">
+      <div class="jtop">
+        <span class="jdate">${fmtDate(e.t)}</span>
+        <span class="jscore" style="background:${SCORE_COLORS[e.s]}">${e.s}/9</span>
+      </div>
+      <div class="jlbl">${e.label}</div>
+      <div class="jcoord">${AGENCY[e.a]} &middot; ${CAUSAL[e.b]} &middot; ${RELATIONAL[e.c]}</div>
+      ${e.note ? `<div class="jtext">&ldquo;${escapeHTML(e.note)}&rdquo;</div>` : ''}
+      <div style="text-align:right; margin-top:0.5rem;"><button class="jdel" data-i="${i}">Delete</button></div>
+    </div>`).join('');
+  list.querySelectorAll('.jdel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const all2 = loadEntries();
+      all2.splice(parseInt(btn.dataset.i,10),1);
+      localStorage.setItem(STORE_KEY, JSON.stringify(all2));
+      renderJournal();
+    });
+  });
+}
+function escapeHTML(str){
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---- top-level nav buttons ---- */
+document.getElementById('startBtn').addEventListener('click', startQuiz);
+document.getElementById('introJournalBtn').addEventListener('click', ()=>{ renderJournal(); showScreen('screen-journal'); });
+document.getElementById('journalHomeBtn').addEventListener('click', ()=> showScreen('screen-intro'));
+document.getElementById('journalNewBtn').addEventListener('click', startQuiz);
+
+/* ============================================================
+   3D CUBE SCENE
+   ============================================================ */
+const container = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 100);
+const camDir = new THREE.Vector3(5.5,4.2,7.5).normalize();
+let camDist = 11;
+function updateCamera(){ camera.position.copy(camDir).multiplyScalar(camDist); camera.lookAt(0,0,0); }
+updateCamera();
+
+scene.add(new THREE.AmbientLight(0xffffff,0.62));
+const d1 = new THREE.DirectionalLight(0xfff0d8,0.95); d1.position.set(6,10,8); scene.add(d1);
+const d2 = new THREE.DirectionalLight(0x8898c0,0.30); d2.position.set(-8,-4,-6); scene.add(d2);
+
+const group = new THREE.Group(); scene.add(group);
+const SPACING = 1.18, SIZE = 0.86;
+const geo = new THREE.BoxGeometry(SIZE,SIZE,SIZE);
+const edgeGeo = new THREE.EdgesGeometry(geo);
+const meshes = [];
+const meshByKey = {};
+
+for (let a=0;a<4;a++) for (let b=0;b<4;b++) for (let c=0;c<4;c++){
+  const s = score(a,b,c);
+  const col = new THREE.Color(SCORE_COLORS[s]);
+  const mat = new THREE.MeshStandardMaterial({ color:col, roughness:0.55, metalness:0.08,
+    emissive:col, emissiveIntensity:0.12, transparent:true, opacity:0.93 });
+  const mesh = new THREE.Mesh(geo,mat);
+  const base = new THREE.Vector3((b-1.5)*SPACING,(1.5-a)*SPACING,(c-1.5)*SPACING);
+  mesh.position.copy(base);
+  mesh.userData = { a,b,c,s,base };
+  mesh.add(new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color:0x000000, transparent:true, opacity:0.28 })));
+  group.add(mesh); meshes.push(mesh);
+  meshByKey[`${a}-${b}-${c}`] = mesh;
+}
+group.rotation.y = -0.55; group.rotation.x = -0.32;
+
+let explodeFactor = 1.35;
+const explodeInput = document.getElementById('explode');
+const evalEl = document.getElementById('eval');
+function applyExplode(){ meshes.forEach(m => m.position.copy(m.userData.base).multiplyScalar(explodeFactor)); }
+applyExplode();
+explodeInput.addEventListener('input', ()=>{
+  explodeFactor = explodeInput.value/100;
+  evalEl.textContent = explodeFactor.toFixed(1)+'×';
+  applyExplode();
+});
+
+let selected = null, autoSpin = true;
+function selectCellByCoords(a,b,c){
+  const mesh = meshByKey[`${a}-${b}-${c}`];
+  if (selected) selected.scale.set(1,1,1);
+  selected = mesh;
+  meshes.forEach(m=>{ if (m!==mesh){ m.material.opacity=0.10; m.material.emissiveIntensity=0.04; }
+    else { m.material.opacity=1; m.material.emissiveIntensity=0.6; } });
+}
+
+/* drag / pinch / zoom (only meaningful while viewing the cube) */
+let dragging=false, moved=false, lastX=0, lastY=0, downX=0, downY=0;
+let pinch=false, pinchStartDist=0, pinchStartCam=0;
+function viewingCube(){ return document.body.classList.contains('viewing-cube'); }
+function touchDist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+function startDrag(x,y){ dragging=true; moved=false; autoSpin=false; lastX=downX=x; lastY=downY=y; }
+function doDrag(x,y){
+  const dx=x-lastX, dy=y-lastY;
+  if (Math.abs(x-downX)+Math.abs(y-downY)>6) moved=true;
+  group.rotation.y += dx*0.008;
+  group.rotation.x = Math.max(-1.2, Math.min(1.2, group.rotation.x + dy*0.008));
+  lastX=x; lastY=y;
+}
+renderer.domElement.addEventListener('mousedown', e=>{ if(viewingCube()) startDrag(e.clientX,e.clientY); });
+window.addEventListener('mousemove', e=>{ if(dragging) doDrag(e.clientX,e.clientY); });
+window.addEventListener('mouseup', ()=>{ dragging=false; });
+renderer.domElement.addEventListener('touchstart', e=>{
+  if(!viewingCube()) return;
+  if(e.touches.length===2){ pinch=true; dragging=false; autoSpin=false; pinchStartDist=touchDist(e.touches); pinchStartCam=camDist; }
+  else if(e.touches.length===1){ startDrag(e.touches[0].clientX, e.touches[0].clientY); }
+},{passive:true});
+window.addEventListener('touchmove', e=>{
+  if(pinch && e.touches.length===2){
+    const d=touchDist(e.touches);
+    camDist=Math.max(4,Math.min(20, pinchStartCam*(pinchStartDist/d)));
+    updateCamera();
+  } else if(dragging && e.touches.length===1){
+    doDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }
+},{passive:true});
+window.addEventListener('touchend', e=>{
+  if(pinch && e.touches.length<2) pinch=false;
+  if(e.touches.length===0) dragging=false;
+});
+renderer.domElement.addEventListener('wheel', e=>{
+  if(!viewingCube()) return;
+  e.preventDefault();
+  camDist=Math.max(4,Math.min(20, camDist + e.deltaY*0.012));
+  updateCamera();
+},{passive:false});
+
+let pulse = 0;
+function animate(){
+  requestAnimationFrame(animate);
+  if (autoSpin) group.rotation.y += 0.0022;
+  if (selected && viewingCube()){
+    pulse += 0.05;
+    selected.material.emissiveIntensity = 0.5 + Math.sin(pulse)*0.22;
+    const sc = 1.18 + Math.sin(pulse)*0.05;
+    selected.scale.set(sc,sc,sc);
+  }
+  renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ---- init ---- */
+applyTone();
+evalEl.textContent = explodeFactor.toFixed(1)+'×';
+</script>
+</body>
+</html>
