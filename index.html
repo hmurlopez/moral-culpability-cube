@@ -180,21 +180,21 @@
     <h1>The Moral Culpability Cube</h1>
     <p class="sub">Agency &middot; Cause &middot; Relationship</p>
 
-    <p class="lede">Not all wrongs weigh the same. The same act can sit anywhere from a passing failure to a grave betrayal &mdash; it depends on what you intended, what you did, and who you owed.</p>
+    <p class="lede">Not all wrongs weigh the same. The same act can sit anywhere from a passing failure to a grave betrayal. How much it weighs depends on what you intended, what you did, and who you owed.</p>
 
     <p style="font-size:0.96rem; line-height:1.65; color:#c0b090; text-align:center;">
-      Answer three honest questions about something on your conscience. The cube will show you where it falls among 64 positions of moral weight &mdash; and, more importantly, what it would take to do better.
+      Answer three honest questions about something on your conscience. The cube will show you where it falls among 64 positions of moral weight, and what it would take to do better.
     </p>
 
     <div class="axisrow">
-      <div class="axiscard"><span class="d" style="background:#c9a552"></span><div class="n">Agency</div><div class="t">Your will &mdash; planned, impulsive, careless, or accidental</div></div>
-      <div class="axiscard"><span class="d" style="background:#88aa88"></span><div class="n">Cause</div><div class="t">Your hand &mdash; did it, enabled it, allowed it, or missed it</div></div>
-      <div class="axiscard"><span class="d" style="background:#8888b8"></span><div class="n">Relationship</div><div class="t">Your bond &mdash; sworn duty, family, neighbor, or stranger</div></div>
+      <div class="axiscard"><span class="d" style="background:#c9a552"></span><div class="n">Agency</div><div class="t">Your will: planned, impulsive, careless, or accidental</div></div>
+      <div class="axiscard"><span class="d" style="background:#88aa88"></span><div class="n">Cause</div><div class="t">Your hand: did it, enabled it, allowed it, or missed it</div></div>
+      <div class="axiscard"><span class="d" style="background:#8888b8"></span><div class="n">Relationship</div><div class="t">Your bond: sworn duty, family, neighbor, or stranger</div></div>
     </div>
 
     <div class="versebox scripture">
       &ldquo;Search me, O God, and know my heart; try me and know my thoughts, and see if there be any grievous way in me, and lead me in the way everlasting.&rdquo;
-      <span class="ref">&mdash; Psalm 139:23&ndash;24</span>
+      <span class="ref">Psalm 139:23&ndash;24</span>
     </div>
 
     <div class="cta">
@@ -205,7 +205,7 @@
       </label>
     </div>
 
-    <p class="footnote">Everything you write stays in this browser, on this device. Nothing is sent anywhere &mdash; no account, no server. This is a tool for honest self-examination, not a verdict.</p>
+    <p class="footnote">Everything you write stays in this browser, on this device. Nothing is sent anywhere. There is no account and no server. Use it for honest self-examination.</p>
   </div>
 </section>
 
@@ -252,8 +252,8 @@
       <button class="btn ghost sm" id="againBtn">New reflection</button>
     </div>
 
-    <p class="footnote">This cube measures culpability, not the worth of a person. The lightest cell still asks something of us; the heaviest still leaves room to turn back.
-      <span class="scripture"><br>&ldquo;If we confess our sins, he is faithful and just to forgive us.&rdquo; &mdash; 1 John 1:9</span>
+    <p class="footnote">This cube measures culpability. It says nothing about the worth of a person. The lightest cell still asks something of us, and the heaviest still leaves room to turn back.
+      <span class="scripture"><br>&ldquo;If we confess our sins, he is faithful and just to forgive us.&rdquo; (1 John 1:9)</span>
     </p>
   </div>
 </section>
@@ -366,30 +366,30 @@ const CELLS = {
 const QUESTIONS = [
   { key:"agency", color:AXIS_COLOR.agency, step:"Question 1 of 3 · Agency",
     title:"When it happened, what was going on inside you?",
-    help:"This is about your will — how much of yourself was in the act.",
+    help:"This is about your will, and how much of yourself was in the act.",
     opts:[
       "I planned it. I knew what I was doing and chose it ahead of time.",
-      "I did it in the heat of the moment — but I knew it was wrong even as I did it.",
+      "I did it in the heat of the moment, though I knew it was wrong even as I did it.",
       "It came from carelessness. I wasn't paying enough attention or taking due care.",
       "It was a genuine accident. I couldn't reasonably have known or foreseen it.",
     ] },
   { key:"causal", color:AXIS_COLOR.causal, step:"Question 2 of 3 · Cause",
     title:"What was your part in the harm itself?",
-    help:"This is about your hand — the link between you and what happened.",
+    help:"This is about your hand, the link between you and what happened.",
     opts:[
       "I caused it directly. It was my own action that did the harm.",
-      "I enabled it — I helped it along or made it possible, even if someone else finished it.",
+      "I enabled it. I helped it along or made it possible, even if someone else finished it.",
       "I failed to prevent it. I could have stopped it and didn't act.",
       "I failed even to notice it when, arguably, I might have.",
     ] },
   { key:"relational", color:AXIS_COLOR.relational, step:"Question 3 of 3 · Relationship",
     title:"What was your bond to the person affected?",
-    help:"This is about what you owed — the claim they had on you.",
+    help:"This is about what you owed, the claim they had on you.",
     opts:[
-      "A sworn or formal duty — an oath, an office, a position of trust over them.",
-      "A natural bond of care — family, a close friend, someone in my charge.",
-      "An incidental tie — a neighbor, coworker, or acquaintance in my path.",
-      "A stranger — no prior connection or duty between us.",
+      "A sworn or formal duty: an oath, an office, a position of trust over them.",
+      "A natural bond of care: family, a close friend, someone in my charge.",
+      "An incidental tie: a neighbor, coworker, or acquaintance in my path.",
+      "A stranger, with no prior connection or duty between us.",
     ] },
 ];
 
@@ -398,47 +398,47 @@ const RECKON = {
   agency: {
     note:[
       "Planned, knowing intent is the heaviest form of agency. You had time to choose otherwise and chose this; the whole of your will was in it.",
-      "You knew it was wrong even as you acted. The knowledge was present — what failed was self-mastery in the moment.",
-      "This grew from carelessness rather than malice. Yet failing to take due care is itself a kind of choice.",
+      "You knew it was wrong even as you acted. The knowledge was present. What failed was self-mastery in the moment.",
+      "This came from carelessness. Even so, failing to take due care is itself a kind of choice.",
       "There was no intent and no reasonable way to foresee it. In every moral tradition this is the lightest form of agency.",
     ],
     grow:[
-      "A plan has a beginning. Reflection works best upstream — at the first thought, not the final act. Where did this take root, and what earlier moment could you have interrupted?",
+      "A plan has a beginning. The best place to catch it is early, while it is still only a thought. Where did this take root, and what earlier moment could you have interrupted?",
       "Name the trigger. The heat of the moment loses its grip once you can see in advance what lights the fuse. What feeling or situation set this off?",
       "Diligence is a virtue you can build on purpose. What attention, habit, or check would have caught this before it became harm?",
-      "If you truly could not have known, take care not to carry guilt that isn't yours. Here, reflection is for peace and learning, not blame.",
+      "If you truly could not have known, take care not to carry guilt that isn't yours. Let this reflection bring you some peace.",
     ] },
   causal: {
     note:[
       "The harm came directly from your own hand. There is no intermediary to share the weight of it.",
       "You made the harm possible or easier, even if another's act completed it. Enabling carries real weight of its own.",
-      "You could have stopped this and did not. The failure to act is still a cause — the sin of omission is no lighter for being quiet.",
+      "You could have stopped this and did not. A failure to act is still a cause, and the sin of omission is no lighter for being quiet.",
       "You did not act because you did not perceive. The weight here turns on whether you ought to have seen.",
     ],
     grow:[
       "When the cause is wholly yours, repair is also most fully in your power. What concrete step could begin to make it right?",
       "Ask where you could have refused to be the bridge. Often the enabling step is easier to decline than the act itself.",
       "Knowing the good and not doing it is its own failure. What made action feel optional, and how will you make it non-negotiable next time?",
-      "Train your attention outward. What would help you notice sooner — a habit of checking in, of looking up from your own concerns?",
+      "Train your attention outward. What would help you notice sooner? Perhaps a habit of checking in, or of looking up from your own concerns.",
     ] },
   relational: {
     note:[
       "You held a sworn or formal duty toward them. The greater the trust placed in you, the graver the breach of it.",
-      "A natural bond — family or those in your care — raises what is rightly owed.",
+      "A natural bond, such as family or those in your care, raises what is rightly owed.",
       "They stood within your path or community: a real claim on you, though a lesser one.",
-      "No prior bond or duty existed. This is the lightest relational weight — though never quite zero, for every person has some claim on us.",
+      "No prior bond or duty existed. This is the lightest relational weight, though never quite zero, since every person has some claim on us.",
     ],
     grow:[
-      "Those who trust us most are wounded most by our failures. How will you tend the trust itself, not only the harm?",
-      "Love is proven in attention. What would it look like to be reliably present to this person, not only in crisis?",
+      "Those who trust us most are wounded most by our failures. How will you begin to rebuild the trust, as well as repair the harm?",
+      "Love is proven in attention. What would it look like to be reliably present to this person, in ordinary days as well as in crisis?",
       "Even loose ties bind us. Consider who else in your path has a quiet claim you've been overlooking.",
-      "That you owed little does not mean you owed nothing. The Samaritan owed a stranger nothing — and is remembered for what he gave anyway.",
+      "That you owed little does not mean you owed nothing. The Samaritan owed a stranger nothing, and is remembered for what he gave anyway.",
     ] },
 };
 
 /* score band descriptors */
 function band(s){
-  if (s<=2) return ["Light weight","Real, but small. The kind of failing examined and set right quickly.","#2a5c38"];
+  if (s<=2) return ["Light weight","Real, though small. The kind of failing examined and set right quickly.","#2a5c38"];
   if (s<=4) return ["Moderate weight","A genuine fault worth sitting with. Several things here could have gone otherwise.","#7e8a28"];
   if (s<=6) return ["Serious weight","This asks for real reckoning. Intention, action, and obligation are meaningfully in play.","#c85810"];
   return ["Grave weight","Among the heaviest the cube measures. Knowing will, direct hand, and deep duty converge here.","#b81a18"];
@@ -562,7 +562,7 @@ function computeResult(){
   const num = document.getElementById('resNum');
   num.textContent = s; num.style.background = SCORE_COLORS[s];
   const bandEl = document.getElementById('resBand');
-  bandEl.textContent = bandName + ' — ' + bandDesc;
+  bandEl.textContent = bandName + '. ' + bandDesc;
   bandEl.style.background = bandCol + '22';
   bandEl.style.color = bandCol === '#2a5c38' ? '#7aa886' : (bandCol === '#7e8a28' ? '#c4c878' : '#e0a080');
   document.getElementById('resEx').textContent = cell[1];
@@ -594,7 +594,7 @@ function computeResult(){
     gh += `<div class="g">${RECKON[ax.key].grow[ax.idx]}</div>`;
   });
   if (!heavyAxes.length){
-    gh += `<div class="g">Little here was within your power, and that matters. Let this reflection be about understanding rather than self-reproach.</div>`;
+    gh += `<div class="g">Little here was within your power, and that matters. Let this reflection be a way to understand what happened, and to be gentle with yourself.</div>`;
   }
   document.getElementById('resGrow').innerHTML = gh;
 
@@ -614,7 +614,7 @@ function computeResult(){
 }
 
 function verseHTML(v){
-  return `<div class="versebox" style="display:block">${v[1]}<span class="ref">&mdash; ${v[0]}</span></div>`;
+  return `<div class="versebox" style="display:block">${v[1]}<span class="ref">${v[0]}</span></div>`;
 }
 
 document.getElementById('saveBtn').addEventListener('click', ()=>{
